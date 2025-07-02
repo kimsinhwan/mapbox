@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Live Location</title>
+  <title>Live Location Sample</title>
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css" rel="stylesheet" />
   <style>
@@ -20,7 +20,7 @@
   const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/streets-v11',
-    center: [126.978, 37.5665], // 초기 좌표 (서울)
+    center: [126.978, 37.5665],
     zoom: 15
   });
 
@@ -35,6 +35,7 @@
       marker.setLngLat([lng, lat]);
       map.setCenter([lng, lat]);
     }, err => {
+      console.error(err);
       alert('위치 권한이 필요합니다.');
     }, {
       enableHighAccuracy: true
