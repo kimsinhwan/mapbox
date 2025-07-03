@@ -2,8 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Mapbox 위치 표시</title>
+<title>Mapbox 위치 표시 및 전송</title>
 <!-- Mapbox CSS -->
 <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet" />
 <style>
@@ -49,6 +48,15 @@
             .setLngLat([lng, lat])
             .addTo(map);
         }
+
+        // 서버로 위치 전송
+        fetch('http://192.168.219.108:3000/save-location', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ lat: lat, lon: lng })
+        });
       },
       function(error) {
         alert('위치 정보를 가져올 수 없습니다.');
