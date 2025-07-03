@@ -2,12 +2,12 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<title>위치 정보 및 카카오 지도</title>
-<!-- 카카오 지도 SDK -->
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=752d860f5671589d0e5978adbf3e35f8"></script>
+<title>위치 정보 및 네이버 지도</title>
+<!-- 네이버 지도 SDK -->
+<script src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=CEqw5Xo4m0f82JinhwZP"></script>
 <style>
-  body { margin:0; padding:0; }
-  #map { width: 100%; height: 50vh; } /* 화면 크기에 맞게 조절 */
+  body { margin:0; padding:0; font-family: Arial, sans-serif; }
+  #map { width: 100%; height: 50vh; }
   #location { padding: 10px; font-size: 1.2em; }
 </style>
 </head>
@@ -21,10 +21,10 @@
   // 지도 생성 (초기 위치는 서울)
   var mapContainer = document.getElementById('map');
   var mapOption = {
-    center: new kakao.maps.LatLng(37.532600, 127.024612),
-    level: 4 // 매우 확대 (100m 이하 거리 보기 위해 낮은 레벨 사용)
+    center: new naver.maps.LatLng(37.532600, 127.024612),
+    zoom: 18 // 매우 확대
   };
-  var map = new kakao.maps.Map(mapContainer, mapOption);
+  var map = new naver.maps.Map(mapContainer, mapOption);
 
   var marker = null;
 
@@ -36,17 +36,17 @@
         var lon = position.coords.longitude;
 
         // 새 위치 생성
-        var newPosition = new kakao.maps.LatLng(lat, lon);
+        var newPosition = new naver.maps.LatLng(lat, lon);
         // 지도 중심 이동
         map.setCenter(newPosition);
-        // 확대 레벨 유지 (더 가까이 보기 위해 낮은 레벨)
-        map.setLevel(4);
+        // 확대 레벨 유지
+        map.setZoom(18);
 
         // 마커 생성 또는 업데이트
         if (marker) {
           marker.setPosition(newPosition);
         } else {
-          marker = new kakao.maps.Marker({ position: newPosition });
+          marker = new naver.maps.Marker({ position: newPosition });
           marker.setMap(map);
         }
 
