@@ -3,12 +3,22 @@
 <head>
 <meta charset="UTF-8" />
 <title>위치 정보 및 네이버 지도</title>
-<!-- 네이버 지도 SDK (Client ID: uqic9x2fq1)로 변경 -->
-<script src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=uqic9x2fq1"></script>
+<!-- 네이버 지도 SDK (Client ID: nuqic9x2fq1) -->
+<script src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=nuqic9x2fq1"></script>
 <style>
-  body { margin:0; padding:0; font-family: Arial, sans-serif; }
-  #map { width: 100%; height: 50vh; }
-  #location { padding: 10px; font-size: 1.2em; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+  }
+  #map {
+    width: 100%;
+    height: 50vh;
+  }
+  #location {
+    padding: 10px;
+    font-size: 1.2em;
+  }
 </style>
 </head>
 <body>
@@ -19,45 +29,40 @@
 
 <script>
   // 지도 생성 (초기 위치는 서울)
-  var mapContainer = document.getElementById('map');
-  var mapOption = {
+  const mapContainer = document.getElementById('map');
+  const mapOptions = {
     center: new naver.maps.LatLng(37.532600, 127.024612),
-    zoom: 18 // 매우 확대
+    zoom: 18
   };
-  var map = new naver.maps.Map(mapContainer, mapOption);
-
-  var marker = null;
+  const map = new naver.maps.Map(mapContainer, mapOptions);
+  let marker = null;
 
   // 위치 감시 및 서버 전송
   if (navigator.geolocation) {
     navigator.geolocation.watchPosition(
-      function(position) {
-        var lat = position.coords.latitude;
-        var lon = position.coords.longitude;
+      (position) => {
+        const { latitude: lat, longitude: lon } = position.coords;
+        const newPosition = new naver.maps.LatLng(lat, lon);
 
-        // 새 위치 생성
-        var newPosition = new naver.maps.LatLng(lat, lon);
         // 지도 중심 이동
         map.setCenter(newPosition);
-        // 확대 레벨 유지
         map.setZoom(18);
 
         // 마커 생성 또는 업데이트
         if (marker) {
           marker.setPosition(newPosition);
         } else {
-          marker = new naver.maps.Marker({ position: newPosition });
-          marker.setMap(map);
+          marker = new naver.maps.Marker({ position: newPosition, map: map });
         }
 
         // 서버로 위치 전송
         fetch('http://192.168.219.108:3000/save-location', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lat: lat, lon: lon })
-        });
+          body: JSON.stringify({ lat, lon })
+        }).catch(error => console.error('서버 전송 실패:', error));
       },
-      function(error) {
+      (error) => {
         alert('위치 정보를 가져올 수 없습니다.');
         console.error(error);
       },
@@ -75,15 +80,19 @@
   async function fetchLocation() {
     try {
       const response = await fetch('http://192.168.219.108:3000/location.txt');
+      if (!response.ok) throw new Error('네트워크 응답이 좋지 않음');
       const text = await response.text();
       document.getElementById('location').innerText = text;
     } catch (error) {
       document.getElementById('location').innerText = '데이터를 불러오지 못했습니다.';
+      console.error('위치 정보 갱신 실패:', error);
     }
   }
 
   // 3초마다 위치 정보 갱신
   setInterval(fetchLocation, 3000);
+  // 최초 호출
+  fetchLocation();
 </script>
 
 </body>
