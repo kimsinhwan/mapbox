@@ -2,89 +2,86 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>실시간 위치 지도</title>
+<title>위치 정보 및 카카오 지도</title>
 <!-- 카카오 지도 SDK -->
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=752d860f5671589d0e5978adbf3e35f8"></script>
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden;
-  }
-  #map {
-    width: 100%;
-    height: 100%;
-  }
-  #location {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: rgba(255,255,255,0.8);
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    z-index: 9999;
-  }
+  body { margin:0; padding:0; }
+  #map { width: 100%; height: 50vh; } /* 화면 크기에 맞게 조절 */
+  #location { padding: 10px; font-size: 1.2em; }
 </style>
 </head>
 <body>
 
-<div id="map"></div>
+<h2>현재 위치</h2>
 <div id="location">로딩 중...</div>
+<div id="map"></div>
 
 <script>
-  // 지도 생성
+  // 지도 생성 (초기 위치는 서울)
   var mapContainer = document.getElementById('map');
   var mapOption = {
-    center: new kakao.maps.LatLng(37.5665, 126.9780), // 초기 위치 (서울)
-    level: 4 // 초기 확대 레벨 (적당히 넓게)
+    center: new kakao.maps.LatLng(37.532600, 127.024612),
+    level: 17 // 확대 레벨 (200m 내외)
   };
   var map = new kakao.maps.Map(mapContainer, mapOption);
 
-  // 마커 생성
-  var marker = new kakao.maps.Marker({
-    position: map.getCenter()
-  });
-  marker.setMap(map);
+  var marker = null;
 
-  // 위치 텍스트 표시
-  var locationText = document.getElementById('location');
+  // 위치 감시 및 서버 전송
+  if (navigator.geolocation) {
+    navigator.geolocation.watchPosition(
+      function(position) {
+        var lat = position.coords.latitude;
+        var lon = position.coords.longitude;
 
-  // 서버에서 텍스트 파일 읽기 및 위치 정보 갱신
+        // 지도 중심 이동
+        var newPosition = new kakao.maps.LatLng(lat, lon);
+        map.setCenter(newPosition);
+        map.setLevel(17); // 확대 레벨 유지
+
+        // 마커 생성 또는 업데이트
+        if (marker) {
+          marker.setPosition(newPosition);
+        } else {
+          marker = new kakao.maps.Marker({ position: newPosition });
+          marker.setMap(map);
+        }
+
+        // 서버로 위치 전송
+        fetch('http://192.168.219.108:3000/save-location', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lat: lat, lon: lon })
+        });
+      },
+      function(error) {
+        alert('위치 정보를 가져올 수 없습니다.');
+        console.error(error);
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 5000
+      }
+    );
+  } else {
+    alert('이 브라우저는 위치 정보를 지원하지 않습니다.');
+  }
+
+  // 서버에서 텍스트 파일 읽기 �� 위치 정보 갱신
   async function fetchLocation() {
     try {
       const response = await fetch('http://192.168.219.108:3000/location.txt');
       const text = await response.text();
-      locationText.innerText = text;
-
-      // 텍스트에서 위도, 경도 추출 (예: "37.5665,126.9780")
-      const coords = text.trim().split(',');
-      if (coords.length === 2) {
-        const lat = parseFloat(coords[0]);
-        const lng = parseFloat(coords[1]);
-        if (!isNaN(lat) && !isNaN(lng)) {
-          const newPosition = new kakao.maps.LatLng(lat, lng);
-          // 지도 중심 이동
-          map.setCenter(newPosition);
-          // 마커 위치 업데이트
-          marker.setPosition(newPosition);
-          // 확대 레벨 조정 (약 200m 범위)
-          map.setLevel(17);
-        }
-      }
+      document.getElementById('location').innerText = text;
     } catch (error) {
-      locationText.innerText = '데이터를 불러오지 못했습니다.';
+      document.getElementById('location').innerText = '데이터를 불러오지 못했습니다.';
     }
   }
 
   // 3초마다 위치 정보 갱신
   setInterval(fetchLocation, 3000);
-
-  // 처음 호출
-  fetchLocation();
 </script>
 
 </body>
