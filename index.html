@@ -22,7 +22,7 @@
   var mapContainer = document.getElementById('map');
   var mapOption = {
     center: new kakao.maps.LatLng(37.532600, 127.024612),
-    level: 17 // 확대 레벨 (200m 내외)
+    level: 4 // 매우 확대 (100m 이하 거리 보기 위해 낮은 레벨 사용)
   };
   var map = new kakao.maps.Map(mapContainer, mapOption);
 
@@ -35,10 +35,12 @@
         var lat = position.coords.latitude;
         var lon = position.coords.longitude;
 
-        // 지도 중심 이동
+        // 새 위치 생성
         var newPosition = new kakao.maps.LatLng(lat, lon);
+        // 지도 중심 이동
         map.setCenter(newPosition);
-        map.setLevel(17); // 확대 레벨 유지
+        // 확대 레벨 유지 (더 가까이 보기 위해 낮은 레벨)
+        map.setLevel(4);
 
         // 마커 생성 또는 업데이트
         if (marker) {
@@ -69,7 +71,7 @@
     alert('이 브라우저는 위치 정보를 지원하지 않습니다.');
   }
 
-  // 서버에서 텍스트 파일 읽기 �� 위치 정보 갱신
+  // 서버에서 텍스트 파일 읽기 및 위치 정보 갱신
   async function fetchLocation() {
     try {
       const response = await fetch('http://192.168.219.108:3000/location.txt');
