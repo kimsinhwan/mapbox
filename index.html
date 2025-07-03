@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <title>위치 정보 및 카카오 지도</title>
-<!-- 카카오 지도 SDK 로드, 앱키 적용 -->
+<!-- 카카오 지도 SDK -->
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=752d860f5671589d0e5978adbf3e35f8"></script>
 <style>
   body { margin:0; padding:0; }
-  #map { position:absolute; top:0; bottom:0; width:100%; height:50%; }
+  #map { width: 100%; height: 50vh; } /* 화면 크기에 맞게 조절 */
   #location { padding: 10px; font-size: 1.2em; }
 </style>
 </head>
@@ -22,15 +22,11 @@
   var mapContainer = document.getElementById('map');
   var mapOption = {
     center: new kakao.maps.LatLng(37.532600, 127.024612),
-    level: 12
+    level: 17 // 확대 레벨 (200m 내외)
   };
   var map = new kakao.maps.Map(mapContainer, mapOption);
 
-  // 마커 생성
-  var marker = new kakao.maps.Marker({
-    position: new kakao.maps.LatLng(37.532600, 127.024612)
-  });
-  marker.setMap(map);
+  var marker = null;
 
   // 위치 감시 및 서버 전송
   if (navigator.geolocation) {
@@ -42,9 +38,15 @@
         // 지도 중심 이동
         var newPosition = new kakao.maps.LatLng(lat, lon);
         map.setCenter(newPosition);
+        map.setLevel(17); // 확대 레벨을 17로 유지
 
-        // 마커 위치 변경
-        marker.setPosition(newPosition);
+        // 마커 생성 또는 업데이트
+        if (marker) {
+          marker.setPosition(newPosition);
+        } else {
+          marker = new kakao.maps.Marker({ position: newPosition });
+          marker.setMap(map);
+        }
 
         // 서버로 위치 전송
         fetch('http://192.168.219.108:3000/save-location', {
@@ -67,7 +69,7 @@
     alert('이 브라우저는 위치 정보를 지원하지 않습니다.');
   }
 
-  // 서버에서 위치 텍스트 읽기 및 갱신
+  // 서버에서 텍스트 파일 읽기 및 위치 정보 갱신
   async function fetchLocation() {
     try {
       const response = await fetch('http://192.168.219.108:3000/location.txt');
