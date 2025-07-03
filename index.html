@@ -2,9 +2,9 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<title>위치 정보 및 지도</title>
-<!-- Mapbox CSS -->
-<link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet" />
+<title>위치 정보 및 카카오 지도</title>
+<!-- 카카오 지도 SDK 로드, 앱키 적용 -->
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=752d860f5671589d0e5978adbf3e35f8"></script>
 <style>
   body { margin:0; padding:0; }
   #map { position:absolute; top:0; bottom:0; width:100%; height:50%; }
@@ -17,46 +17,40 @@
 <div id="location">로딩 중...</div>
 <div id="map"></div>
 
-<!-- Mapbox JS -->
-<script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
 <script>
-  // Mapbox 액세스 토큰 (본인 토큰으로 교체)
-  mapboxgl.accessToken = 'pk.eyJ1IjoieW9vbmd5OTEiLCJhIjoiY21jMDczMzV1MXg0YTJqbjFiazMzdWI0ciJ9.1553HcxLbM-BN_v6t5d3zg';
+  // 지도 생성 (초기 위치는 서울)
+  var mapContainer = document.getElementById('map');
+  var mapOption = {
+    center: new kakao.maps.LatLng(37.532600, 127.024612),
+    level: 12
+  };
+  var map = new kakao.maps.Map(mapContainer, mapOption);
 
-  // 지도 생성
-  const map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v11',
-    center: [127.024612, 37.532600], // 초기 중심 좌표 (서울)
-    zoom: 12
+  // 마커 생성
+  var marker = new kakao.maps.Marker({
+    position: new kakao.maps.LatLng(37.532600, 127.024612)
   });
-
-  let marker = null;
+  marker.setMap(map);
 
   // 위치 감시 및 서버 전송
   if (navigator.geolocation) {
     navigator.geolocation.watchPosition(
       function(position) {
-        const lng = position.coords.longitude;
-        const lat = position.coords.latitude;
+        var lat = position.coords.latitude;
+        var lon = position.coords.longitude;
 
         // 지도 중심 이동
-        map.setCenter([lng, lat]);
+        var newPosition = new kakao.maps.LatLng(lat, lon);
+        map.setCenter(newPosition);
 
-        // 마커 업데이트 또는 생성
-        if (marker) {
-          marker.setLngLat([lng, lat]);
-        } else {
-          marker = new mapboxgl.Marker()
-            .setLngLat([lng, lat])
-            .addTo(map);
-        }
+        // 마커 위치 변경
+        marker.setPosition(newPosition);
 
         // 서버로 위치 전송
         fetch('http://192.168.219.108:3000/save-location', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lat: lat, lon: lng })
+          body: JSON.stringify({ lat: lat, lon: lon })
         });
       },
       function(error) {
@@ -73,7 +67,7 @@
     alert('이 브라우저는 위치 정보를 지원하지 않습니다.');
   }
 
-  // 서버에서 텍스트 파일 읽기 및 위치 정보 갱신
+  // 서버에서 위치 텍스트 읽기 및 갱신
   async function fetchLocation() {
     try {
       const response = await fetch('http://192.168.219.108:3000/location.txt');
