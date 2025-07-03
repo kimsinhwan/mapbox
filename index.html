@@ -29,9 +29,11 @@
     zoom: 12
   });
 
-  // 위치 정보 요청
+  let marker = null; // 마커 변수 선언
+
+  // 위치를 계속 감시하는 watchPosition 사용
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
+    navigator.geolocation.watchPosition(
       function(position) {
         const lng = position.coords.longitude;
         const lat = position.coords.latitude;
@@ -39,14 +41,23 @@
         // 지도 중심 이동
         map.setCenter([lng, lat]);
 
-        // 마커 생성
-        new mapboxgl.Marker()
-          .setLngLat([lng, lat])
-          .addTo(map);
+        // 마커 업데이트 또는 새로 생성
+        if (marker) {
+          marker.setLngLat([lng, lat]);
+        } else {
+          marker = new mapboxgl.Marker()
+            .setLngLat([lng, lat])
+            .addTo(map);
+        }
       },
       function(error) {
         alert('위치 정보를 가져올 수 없습니다.');
         console.error(error);
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 5000
       }
     );
   } else {
