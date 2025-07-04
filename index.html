@@ -3,30 +3,41 @@
 <head>
 <meta charset="UTF-8" />
 <title>네이버 지도 예제</title>
-<!-- 네이버 지도 API 호출, 클라이언트 ID를 넣어주세요 -->
+<!-- 네이버 지도 API 호출 -->
 <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=uqic9x2fq1"></script>
-<style>
-  #map {
-    width: 500px;
-    height: 400px;
-  }
-</style>
 </head>
 <body>
-<h2>네이버 지도 기본 예제</h2>
-<div id="map"></div>
+<div id="map" style="width:500px; height:400px;"></div>
 <script>
   // 지도 생성
   var map = new naver.maps.Map('map', {
-    center: new naver.maps.LatLng(37.3595704, 127.105399), // 초기 중심 좌표
-    zoom: 10 // 확대 수준
+      center: new naver.maps.LatLng(37.3595704, 127.105399), // 초기 중심 좌표
+      zoom: 10 // 확대 수준
   });
 
-  // 마커 생성
-  var marker = new naver.maps.Marker({
-    position: new naver.maps.LatLng(37.3595704, 127.105399),
-    map: map
-  });
+  // 서버에서 데이터 받아오기
+  fetch('http://localhost:3000/maps')
+    .then(response => response.json())
+    .then(data => {
+      console.log('API 데이터:', data);
+      
+      // 예를 들어, data에 좌표 배열이 있다고 가정
+      // 데이터 구조에 따라 아래 부분 수정 필요
+      if (data && data.coordinates) {
+        data.coordinates.forEach(coord => {
+          // 좌표가 { lat: ..., lng: ... } 형태라고 가정
+          new naver.maps.Marker({
+            position: new naver.maps.LatLng(coord.lat, coord.lng),
+            map: map
+          });
+        });
+      } else {
+        console.warn('좌표 데이터가 없습니다.');
+      }
+    })
+    .catch(error => {
+      console.error('오류:', error);
+    });
 </script>
 </body>
 </html>
