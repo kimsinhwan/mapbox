@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>실시간 위치 지도</title>
+  <title>윤기GO 실시간 한글 지도</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet" />
   <style>
@@ -13,7 +13,7 @@
       width: 100%;
     }
     .marker {
-      background-image: url('./maker.png'); /* 윤기GO 캐릭터 이미지 */
+      background-image: url('./maker.png'); /* 👉 네 캐릭터 이미지 경로 */
       background-size: cover;
       width: 40px;
       height: 40px;
@@ -25,17 +25,29 @@
 <body>
   <div id="map"></div>
 
+  <!-- ✅ Mapbox GL JS -->
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
+
+  <!-- ✅ Mapbox GL Language Plugin -->
+  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v1.0.0/mapbox-gl-language.js"></script>
+
   <script>
+    // ✅ 네 Mapbox Access Token
     mapboxgl.accessToken = 'pk.eyJ1IjoieW9vbmd5OTEiLCJhIjoiY21jMDczMzV1MXg0YTJqbjFiazMzdWI0ciJ9.1553HcxLbM-BN_v6t5d3zg';
 
+    // ✅ 기본 Streets 스타일 사용 (한글 라벨 OK)
     const map = new mapboxgl.Map({
       container: 'map',
-      style: 'mapbox://styles/yoonmap/clswe2q5i000j01qwdt8v1rtz', // ✅ 한글 지도 스타일
+      style: 'mapbox://styles/mapbox/streets-v12', // ⭐️ 반드시 기본 Streets
       center: [126.978, 37.5665],
       zoom: 17
     });
 
+    // ✅ 한글 자동 적용
+    const language = new MapboxLanguage({ defaultLanguage: 'ko' });
+    map.addControl(language);
+
+    // ✅ 캐릭터 마커
     const markerEl = document.createElement('div');
     markerEl.className = 'marker';
 
@@ -43,6 +55,7 @@
       .setLngLat([126.978, 37.5665])
       .addTo(map);
 
+    // ✅ 실시간 위치 갱신
     async function updateLocation() {
       try {
         const res = await fetch('https://kimsinhwan.github.io/mapbox/location.json', { cache: 'no-store' });
