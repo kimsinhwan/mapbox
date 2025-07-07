@@ -31,12 +31,11 @@
 
     const map = new mapboxgl.Map({
       container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: [126.978, 37.5665], // 초기 좌표
+      style: 'mapbox://styles/yoonmap/clswe2q5i000j01qwdt8v1rtz', // ✅ 한글 지도 스타일
+      center: [126.978, 37.5665],
       zoom: 17
     });
 
-    // 🔴 캐릭터 마커 생성
     const markerEl = document.createElement('div');
     markerEl.className = 'marker';
 
@@ -44,7 +43,6 @@
       .setLngLat([126.978, 37.5665])
       .addTo(map);
 
-    // 🔄 위치 갱신 함수
     async function updateLocation() {
       try {
         const res = await fetch('https://kimsinhwan.github.io/mapbox/location.json', { cache: 'no-store' });
@@ -67,7 +65,6 @@
       }
     }
 
-    // ⏱️ 3초마다 갱신
     setInterval(updateLocation, 3000);
     updateLocation();
   </script>
