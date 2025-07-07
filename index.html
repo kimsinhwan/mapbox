@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>Live Mapbox Tracker</title>
+  <title>실시간 위치 지도</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet" />
   <style>
@@ -10,19 +10,21 @@
       margin: 0;
       padding: 0;
       height: 100%;
+      width: 100%;
     }
     .marker {
-      background-image: url('https://kimsinhwan.github.io/mapbox/maker.png');
+      background-image: url('./maker.png'); /* 윤기GO 캐릭터 이미지 */
       background-size: cover;
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      cursor: pointer;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
+
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
   <script>
     mapboxgl.accessToken = 'pk.eyJ1IjoieW9vbmd5OTEiLCJhIjoiY21jMDczMzV1MXg0YTJqbjFiazMzdWI0ciJ9.1553HcxLbM-BN_v6t5d3zg';
@@ -30,32 +32,44 @@
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/streets-v11',
-      center: [126.978, 37.5665], // 초기 중심 좌표 (서울)
-      zoom: 18 // 최대 확대
+      center: [126.978, 37.5665], // 초기 좌표
+      zoom: 17
     });
 
+    // 🔴 캐릭터 마커 생성
     const markerEl = document.createElement('div');
     markerEl.className = 'marker';
-    const marker = new mapboxgl.Marker(markerEl).setLngLat([126.978, 37.5665]).addTo(map);
 
-    async function fetchLocation() {
+    const marker = new mapboxgl.Marker(markerEl)
+      .setLngLat([126.978, 37.5665])
+      .addTo(map);
+
+    // 🔄 위치 갱신 함수
+    async function updateLocation() {
       try {
-        const res = await fetch('https://script.google.com/macros/s/AKfycbx5IkzqLRY-3VzZ7pJfXbPqYRTh5Ad5i83St4JL98zusdGU61ANiiGlulw93c0l0AgPvw/exec');
+        const res = await fetch('https://kimsinhwan.github.io/mapbox/location.json', { cache: 'no-store' });
         const data = await res.json();
 
-        if (data.lat && data.lng) {
-          const lat = parseFloat(data.lat);
-          const lng = parseFloat(data.lng);
+        const lng = parseFloat(data.lng);
+        const lat = parseFloat(data.lat);
+
+        if (!isNaN(lng) && !isNaN(lat)) {
           marker.setLngLat([lng, lat]);
-          map.flyTo({ center: [lng, lat], zoom: 18 });
+          map.flyTo({
+            center: [lng, lat],
+            zoom: 17,
+            speed: 0.8,
+            curve: 1
+          });
         }
       } catch (e) {
-        console.error('위치 가져오기 실패:', e);
+        console.warn('❌ 위치 갱신 실패:', e);
       }
     }
 
-    fetchLocation();
-    setInterval(fetchLocation, 3000); // 3초 간격
+    // ⏱️ 3초마다 갱신
+    setInterval(updateLocation, 3000);
+    updateLocation();
   </script>
 </body>
 </html>
