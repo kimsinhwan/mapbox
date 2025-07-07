@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>실시간 위치 지도</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+    .marker {
+      background-image: url('https://kimsinhwan.github.io/mapbox/maker.png'); /* ← 이 링크에 이미지 업로드되어 있어야 함 */
+      background-size: cover;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 0 6px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script>
+    // Mapbox 접근 토큰 설정
+    mapboxgl.accessToken = 'pk.eyJ1IjoieW9vbmd5OTEiLCJhIjoiY21jMDczMzV1MXg0YTJqbjFiazMzdWI0ciJ9.1553HcxLbM-BN_v6t5d3zg';
+
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [127.0276, 37.4979], // 초기 중심 (강남)
+      zoom: 20 // 최대 확대
+      language: 'ko' // 한글 설정은 Mapbox 기본 제공 아님
+    });
+
+    const markerElement = document.createElement('div');
+    markerElement.className = 'marker';
+
+    const marker = new mapboxgl.Marker(markerElement).setLngLat([127.0276, 37.4979]).addTo(map);
+
+    async function updateLocation() {
+      try {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbx5IkzqLRY-3VzZ7pJfXbPqYRTh5Ad5i83St4JL98zusdGU61ANiiGlulw93c0l0AgPvw/exec");
+        const data = await res.json();
+
+        if (data.lat && data.lng) {
+          const lat = parseFloat(data.lat);
+          const lng = parseFloat(data.lng);
+
+          marker.setLngLat([lng, lat]);
+          map.setCenter([lng, lat]); // 이동 시 지도 따라감
+        }
+      } catch (e) {
+        console.error('위치 업데이트 실패:', e);
+      }
+    }
+
+    setInterval(updateLocation, 3000); // 3초 간격 업데이트
+    updateLocation(); // 최초 실행
+  </script>
+</body>
+</html>
