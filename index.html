@@ -6,13 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet" />
   <style>
-    html, body, #map { margin:0; padding:0; height:100%; width:100%; }
-    #map { opacity:0.8; }                               /* ✅ 지도 투명도 */
+    html,body,#map{margin:0;padding:0;height:100%;width:100%;}
+    #map{opacity:.8;}
     .marker{
-      background-image:url('./maker.png');              /* 👉 캐릭터 이미지 경로 유지 */
-      background-size:cover; width:40px; height:40px;
-      border-radius:50%; box-shadow:0 0 5px rgba(0,0,0,.4);
-    }
+      background-image:url('./maker.png');
+      background-size:cover;width:40px;height:40px;
+      border-radius:50%;box-shadow:0 0 5px rgba(0,0,0,.4);}
   </style>
 </head>
 <body>
@@ -22,36 +21,28 @@
   <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v1.0.0/mapbox-gl-language.js"></script>
 
   <script>
-    mapboxgl.accessToken =
-      'pk.eyJ1IjoieW9vbmd5OTEiLCJhIjoiY21jMDczMzV1MXg0YTJqbjFiazMzdWI0ciJ9.1553HcxLbM-BN_v6t5d3zg';
+    mapboxgl.accessToken='pk.eyJ1IjoieW9vbmd5OTEiLCJhIjoiY21jMDczMzV1MXg0YTJqbjFiazMzdWI0ciJ9.1553HcxLbM-BN_v6t5d3zg';
+    const map=new mapboxgl.Map({
+      container:'map',style:'mapbox://styles/mapbox/streets-v12',
+      center:[126.978,37.5665],zoom:17});
+    map.addControl(new MapboxLanguage({defaultLanguage:'ko'}));
 
-    const map = new mapboxgl.Map({
-      container:'map',
-      style:'mapbox://styles/mapbox/streets-v12',
-      center:[126.978,37.5665], zoom:17
-    });
-    map.addControl(new MapboxLanguage({ defaultLanguage:'ko' }));
+    const marker=new mapboxgl.Marker(Object.assign(document.createElement('div'),{className:'marker'}))
+                 .setLngLat([126.978,37.5665]).addTo(map);
 
-    /* ✅ 마커 생성 */
-    const marker = new mapboxgl.Marker(Object.assign(document.createElement('div'),{className:'marker'}))
-                  .setLngLat([126.978,37.5665]).addTo(map);
+    const GAS_URL='https://script.google.com/macros/s/AKfycbxpKvbE7y7NQXplZR3LuGjQBcvX44ywsKKADsmQOUnNN3ICC0UABbaVmCtlWzlgu-vM5A/exec';
 
-    /* ✅ GAS doGet URL(googleusercontent 직통) */
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxpKvbE7y7NQXplZR3LuGjQBcvX44ywsKKADsmQOUnNN3ICC0UABbaVmCtlWzlgu-vM5A/exec';
-
-    async function updateLocation(){
+    async function refresh(){
       try{
-        const res = await fetch(GAS_URL + '&t=' + Date.now(), { cache:'no-store' });  /* 캐시‑Bust */
-        const d   = await res.json();
-        const lng = +d.lng, lat = +d.lat;
+        const r=await fetch(GAS_URL + '&t=' + Date.now(), { cache:'no-store' });
+        const d=await r.json(),lng=+d.lng,lat=+d.lat;
         if(!isNaN(lng)&&!isNaN(lat)){
           marker.setLngLat([lng,lat]);
-          map.flyTo({ center:[lng,lat], zoom:17, speed:.8, curve:1 });
+          map.flyTo({center:[lng,lat],zoom:17,speed:.8,curve:1});
         }
-      }catch(e){ console.warn('❌ 위치 갱신 실패:',e); }
+      }catch(e){console.warn('❌ 위치 갱신 실패:',e);}
     }
-    updateLocation();
-    setInterval(updateLocation,3000);            /* 3 초 주기 */
+    refresh(); setInterval(refresh,3000);
   </script>
 </body>
 </html>
