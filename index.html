@@ -6,86 +6,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet" />
   <style>
-    html, body, #map {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
-    }
-
-    #map {
-      opacity: 0.8; /* ✅ 지도 투명도 */
-    }
-
-    .marker {
-      background-image: url('./maker.png'); /* 👉 캐릭터 이미지 경로 유지 */
-      background-size: cover;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
+    html, body, #map { margin:0; padding:0; height:100%; width:100%; }
+    #map { opacity:0.8; }                               /* ✅ 지도 투명도 */
+    .marker{
+      background-image:url('./maker.png');              /* 👉 캐릭터 이미지 경로 유지 */
+      background-size:cover; width:40px; height:40px;
+      border-radius:50%; box-shadow:0 0 5px rgba(0,0,0,.4);
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
-  <!-- ✅ Mapbox GL JS -->
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
-
-  <!-- ✅ Mapbox GL Language Plugin -->
   <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v1.0.0/mapbox-gl-language.js"></script>
 
   <script>
-    // ✅ Mapbox Access Token
-    mapboxgl.accessToken = 'pk.eyJ1IjoieW9vbmd5OTEiLCJhIjoiY21jMDczMzV1MXg0YTJqbjFiazMzdWI0ciJ9.1553HcxLbM-BN_v6t5d3zg';
+    mapboxgl.accessToken =
+      'pk.eyJ1IjoieW9vbmd5OTEiLCJhIjoiY21jMDczMzV1MXg0YTJqbjFiazMzdWI0ciJ9.1553HcxLbM-BN_v6t5d3zg';
 
     const map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [126.978, 37.5665], // 기본 중심: 서울시청
-      zoom: 17
+      container:'map',
+      style:'mapbox://styles/mapbox/streets-v12',
+      center:[126.978,37.5665], zoom:17
     });
+    map.addControl(new MapboxLanguage({ defaultLanguage:'ko' }));
 
-    const language = new MapboxLanguage({ defaultLanguage: 'ko' });
-    map.addControl(language);
+    /* ✅ 마커 생성 */
+    const marker = new mapboxgl.Marker(Object.assign(document.createElement('div'),{className:'marker'}))
+                  .setLngLat([126.978,37.5665]).addTo(map);
 
-    // ✅ 캐릭터 마커
-    const markerEl = document.createElement('div');
-    markerEl.className = 'marker';
+    /* ✅ GAS doGet URL(googleusercontent 직통) */
+    const GAS_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=YOUR_KEY&lib=YOUR_LIB';
 
-    const marker = new mapboxgl.Marker(markerEl)
-      .setLngLat([126.978, 37.5665])
-      .addTo(map);
-
-    // ✅ 실시간 위치 갱신 (GAS doGet URL)
-    async function updateLocation() {
-      try {
-        const res = await fetch(
-          'https://script.google.com/macros/s/AKfycbxpKvbE7y7NQXplZR3LuGjQBcvX44ywsKKADsmQOUnNN3ICC0UABbaVmCtlWzlgu-vM5A/exec',
-          { cache: 'no-store' }
-        );
-        const data = await res.json();
-
-        const lng = parseFloat(data.lng);
-        const lat = parseFloat(data.lat);
-
-        if (!isNaN(lng) && !isNaN(lat)) {
-          marker.setLngLat([lng, lat]);
-          map.flyTo({
-            center: [lng, lat],
-            zoom: 17,
-            speed: 0.8,
-            curve: 1
-          });
+    async function updateLocation(){
+      try{
+        const res = await fetch(GAS_URL + '&t=' + Date.now(), { cache:'no-store' });  /* 캐시‑Bust */
+        const d   = await res.json();
+        const lng = +d.lng, lat = +d.lat;
+        if(!isNaN(lng)&&!isNaN(lat)){
+          marker.setLngLat([lng,lat]);
+          map.flyTo({ center:[lng,lat], zoom:17, speed:.8, curve:1 });
         }
-      } catch (e) {
-        console.warn('❌ 위치 갱신 실패:', e);
-      }
+      }catch(e){ console.warn('❌ 위치 갱신 실패:',e); }
     }
-
-    setInterval(updateLocation, 3000);
     updateLocation();
+    setInterval(updateLocation,3000);            /* 3 초 주기 */
   </script>
 </body>
 </html>
